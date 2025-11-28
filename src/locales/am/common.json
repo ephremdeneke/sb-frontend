@@ -1,0 +1,130 @@
+{
+  "app": {
+    "title": "ሰርፕራይዝ ዳቦ",
+    "subtitle": "የቤከሪ አስተዳደር"
+  },
+  "auth": {
+    "login": "ግባ",
+    "logout": "ውጣ",
+    "signOut": "ውጣ",
+    "exit": "ውጣ"
+  },
+  "roles": {
+    "manager": "ማኔጅር",
+    "cashier": "ካሻየር",
+    "user": "ተጠቃሚ"
+  },
+  "nav": {
+    "dashboard": "ዳሽ ቦርድ",
+    "inventory": "እቃዎች",
+    "expenses": "ወጪዎች",
+    "reports": "ሪፖርቶች",
+    "settings": "ማስተካከያ",
+    "sales": "ሽያጮች",
+    "customers": "ደንበኞች"
+  },
+  "ui": {
+    "close": "ዝጋ",
+    "menu": "ማውጫ",
+    "loading": "በመጫን ላይ...",
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "delete": "ደምስስ",
+    "edit": "አስትካክል",
+    "add": "ጨምር",
+    "search": "ፈልግ..."
+  },
+  "dashboard": {
+    "title": "ዳሽቦርድ",
+    "welcome": "እንኳን ደህና መጡ! ዛሬ የትኞቹ ነገሮች እንደሚከሰቱ ይህ ነው።",
+    "overview": "አጠቃላይ እይታ",
+    "recentActivity": "የቅርብ እንቅስቃሴዎች",
+    "quickActions": "ፈጣን ተግባራት",
+    "dailySales": "የቀና ሽያጭ",
+    "weeklySales": "የሳምንት ሽያጭ",
+    "monthlySales": "የወር ሽያጭ",
+    "yearlySales": "የዓመት ሽያጭ",
+    "productDistribution": "የምርት ተከፋፈል",
+    "stats": {
+      "totalRevenue": "ጠቅላላ ገቢ",
+      "totalSales": "ጠቅላላ ሽያጭ",
+      "productsSold": "የተሸጡ ምርቶች",
+      "customers": "ደንበኞች",
+      "fromlastday": "ከትላንት ወዲህ",
+      "fromLastWeek": "ከባለፈው ሳምንት ጀምሮ",
+      "fromLastMonth": "ከባለፈው ዓመት"
+    }
+  },
+  "inventory": {
+    "title": "እቃ ማከማቻ",
+    "addItem": "እቃ ጨምር",
+    "itemName": "የእቃ ስም",
+    "quantity": "ብዛት",
+    "price": "ዋጋ",
+    "category": "ምድብ"
+  },
+  "sales": {
+    "title": "ሽያጭ",
+    "newSale": "አዲስ ሽያጭ",
+    "total": "ጠቅላላ",
+    "discount": "ቅናሽ",
+    "tax": "ታክስ",
+    "grandTotal": "አጠቃላይ ድምር"
+  },
+  "customers": {
+    "title": "ደንበኞች",
+    "addCustomer": "ደንበኛ ጨምር",
+    "name": "ስም",
+    "phone": "ስልክ",
+    "email": "ኢሜይል",
+    "loyaltyPoints": "የእውን ነገር ነጥቦች"
+  },
+  "expenses": {
+    "title": "ወጪዎች",
+    "addExpense": "ወጪ ጨምር",
+    "amount": "መጠን",
+    "date": "ቀን",
+    "category": "ምድብ",
+    "description": "መግለጫ"
+  },
+  "reports": {
+    "title": "ሪፖርቶች",
+    "salesReport": "የሽያጭ ሪፖርት",
+    "inventoryReport": "የእቃ ማከማቻ ሪፖርት",
+    "expenseReport": "የወጪ ሪፖርት",
+    "dateRange": "የቀኖች ክልል",
+    "generate": "ሪፖርት ይፍጠሩ"
+  },
+  "settings": {
+    "title": "ቅንብሮች",
+    "general": "አጠቃላይ",
+    "users": "ተጠቃሚዎች",
+    "taxRates": "የታክስ ተመኖች",
+    "backup": "ቅጂ እና ዳተኛ"
+  },
+  "errors": {
+    "required": "ይህ ቦታ ባዶ ሊሆን አይችልም",
+    "invalidEmail": "እባክዎ ትክክለኛ ኢሜይል ያስገቡ",
+    "invalidPhone": "እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ",
+    "invalidNumber": "እባክዎ ትክክለኛ ቁጥር ያስገቡ"
+  },
+  "success": {
+    "saved": "በተሳካ ሁኔታ ተቀምጧል",
+    "deleted": "በተሳካ ሁኔታ ተሰርዟል",
+    "added": "በተሳካ ሁኔታ ታክሏል"
+  },
+  "confirm": {
+    "deleteTitle": "ማጥፋቱን ያረጋግጡ",
+    "deleteMessage": "ይህን ንጥል ማጥፋት ይፈልጋሉ?",
+    "yes": "አዎ",
+    "no": "አይደለም"
+  },
+  "date": {
+    "today": "ዛሬ",
+    "yesterday": "ትናንት",
+    "thisWeek": "ይህ ሳምንት",
+    "thisMonth": "ይህ ወር",
+    "lastMonth": "ያለፈው ወር",
+    "custom": "ደንበኞች"
+  }
+}

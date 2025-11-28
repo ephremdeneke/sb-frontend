@@ -1,0 +1,125 @@
+{
+  "app": {
+    "title": "Suprise Bakery",
+    "subtitle": "Bakery Management"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "signOut": "Sign Out",
+    "exit": "Exit"
+  },
+  "roles": {
+    "manager": "Manager",
+    "cashier": "Cashier",
+    "user": "User"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "expenses": "Expenses",
+    "reports": "Reports",
+    "settings": "Settings",
+    "sales": "Sales",
+    "customers": "Customers"
+  },
+  "ui": {
+    "close": "Close",
+    "menu": "Menu",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search..."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back! Here's what's happening today.",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "weeklySales": "Weekly Sales",
+    "productDistribution": "Product Distribution",
+    "stats": {
+      "totalRevenue": "Total Revenue",
+      "totalSales": "Total Sales",
+      "productsSold": "Products Sold",
+      "customers": "Customers",
+      "fromLastWeek": "from last week"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "addItem": "Add Item",
+    "itemName": "Item Name",
+    "quantity": "Quantity",
+    "price": "Price",
+    "category": "Category"
+  },
+  "sales": {
+    "title": "Sales",
+    "newSale": "New Sale",
+    "total": "Total",
+    "discount": "Discount",
+    "tax": "Tax",
+    "grandTotal": "Grand Total"
+  },
+  "customers": {
+    "title": "Customers",
+    "addCustomer": "Add Customer",
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "loyaltyPoints": "Loyalty Points"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "addExpense": "Add Expense",
+    "amount": "Amount",
+    "date": "Date",
+    "category": "Category",
+    "description": "Description"
+  },
+  "reports": {
+    "title": "Reports",
+    "salesReport": "Sales Report",
+    "inventoryReport": "Inventory Report",
+    "expenseReport": "Expense Report",
+    "dateRange": "Date Range",
+    "generate": "Generate Report"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "users": "Users",
+    "taxRates": "Tax Rates",
+    "backup": "Backup & Restore"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "invalidPhone": "Please enter a valid phone number",
+    "invalidNumber": "Please enter a valid number"
+  },
+  "success": {
+    "saved": "Changes saved successfully",
+    "deleted": "Item deleted successfully",
+    "added": "Item added successfully"
+  },
+  "confirm": {
+    "deleteTitle": "Confirm Delete",
+    "deleteMessage": "Are you sure you want to delete this item?",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "date": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "custom": "Custom Range"
+  }
+}
