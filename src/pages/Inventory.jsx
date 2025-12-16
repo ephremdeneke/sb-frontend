@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { useBmsStore } from '../store/bms'
 
 export default function Inventory(){
-  const { products, ingredients, addProduct, deleteProduct, addIngredient, deleteIngredient } = useBmsStore(s=>({
+  const { products, ingredients, addProduct, deleteProduct, addIngredient, deleteIngredient, settings } = useBmsStore(s=>({
     products: s.products,
     ingredients: s.ingredients,
     addProduct: s.addProduct,
     deleteProduct: s.deleteProduct,
     addIngredient: s.addIngredient,
     deleteIngredient: s.deleteIngredient,
+    settings: s.settings,
   }))
+  const lowStockThreshold = settings?.lowStockThreshold || 5
   const [p, setP] = useState({ name:'', price:'', stock:'' })
   const [i, setI] = useState({ name:'', qty:'', expiresAt:'' })
   function addP(e){ e.preventDefault(); if(!p.name) return; addProduct({ name:p.name, price:Number(p.price||0), stock:Number(p.stock||0) }); setP({ name:'', price:'', stock:'' }) }
@@ -27,15 +29,25 @@ export default function Inventory(){
             <button className="col-span-4 bg-orange-900 text-white rounded px-3 py-2">Add Product</button>
           </form>
           <ul className="divide-y text-sm">
-            {products.map(x=> (
-              <li key={x.id} className="py-2 flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-medium">{x.name}</div>
-                  <div className="text-orange-500">${x.price} • stock {x.stock}</div>
-                </div>
-                <button onClick={()=>deleteProduct(x.id)} className="px-2 py-1 text-red-600">Delete</button>
-              </li>
-            ))}
+            {products.map(x=> {
+              const isLowStock = x.stock <= lowStockThreshold && x.stock > 0
+              const isOutOfStock = x.stock === 0
+              return (
+                <li key={x.id} className={`py-2 flex items-center justify-between ${isOutOfStock ? 'bg-red-50' : isLowStock ? 'bg-yellow-50' : ''}`}>
+                  <div className="flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      {x.name}
+                      {isOutOfStock && <span className="text-xs bg-red-200 text-red-800 px-2 py-0.5 rounded">OUT OF STOCK</span>}
+                      {isLowStock && !isOutOfStock && <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded">LOW STOCK</span>}
+                    </div>
+                    <div className={`${isOutOfStock ? 'text-red-600' : isLowStock ? 'text-yellow-600' : 'text-orange-500'}`}>
+                      ${x.price} • stock {x.stock}
+                    </div>
+                  </div>
+                  <button onClick={()=>deleteProduct(x.id)} className="px-2 py-1 text-red-600">Delete</button>
+                </li>
+              )
+            })}
           </ul>
         </div>
         <div className="bg-white border rounded p-4">

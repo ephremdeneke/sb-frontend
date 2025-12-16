@@ -1,6 +1,7 @@
 import { create } from 'zustand' // 
 import { persist } from 'zustand/middleware'
 import { addDays, format } from 'date-fns'
+import { useNotificationStore } from './notifications'
 
 const seed = () => ({
   products: [
@@ -27,8 +28,22 @@ const seed = () => ({
 
 export const useBmsStore = create(persist((set,get)=>({
   ...seed(),
-  addProduct: (p)=> set({ products: [...get().products, { ...p, id: crypto.randomUUID() }] , activities: [...get().activities, { type:'add_product', at: Date.now(), payload:p }] }),
-  updateProduct: (id, patch)=> set({ products: get().products.map(x=> x.id===id? { ...x, ...patch }: x), activities: [...get().activities, { type:'update_product', at: Date.now(), payload:{id,patch} }] }),
+  addProduct: (p)=> {
+    const newProduct = { ...p, id: crypto.randomUUID() }
+    const updated = [...get().products, newProduct]
+    // Check stock levels for new product
+    checkStockLevels([newProduct], get().settings.lowStockThreshold || 5)
+    set({ products: updated, activities: [...get().activities, { type:'add_product', at: Date.now(), payload:p }] })
+  },
+  updateProduct: (id, patch)=> {
+    const updated = get().products.map(x=> x.id===id? { ...x, ...patch }: x)
+    const product = updated.find(x => x.id === id)
+    // Check stock levels after update
+    if (product && 'stock' in patch) {
+      checkStockLevels([product], get().settings.lowStockThreshold)
+    }
+    set({ products: updated, activities: [...get().activities, { type:'update_product', at: Date.now(), payload:{id,patch} }] })
+  },
   deleteProduct: (id)=> set({ products: get().products.filter(x=>x.id!==id), activities: [...get().activities, { type:'delete_product', at: Date.now(), payload:{id} }] }),
 
   addIngredient: (ing)=> set({ ingredients: [...get().ingredients, { ...ing, id: crypto.randomUUID() }], activities: [...get().activities, { type:'add_ingredient', at: Date.now(), payload:ing }] }),
@@ -43,6 +58,12 @@ export const useBmsStore = create(persist((set,get)=>({
       if(!s) return p
       return { ...p, stock: Math.max(0, p.stock - s.qty) }
     })
+    
+    // Check stock levels after sale
+    const threshold = get().settings.lowStockThreshold || 5
+    const affectedProducts = updated.filter(p => items.some(i => i.id === p.id))
+    checkStockLevels(affectedProducts, threshold)
+    
     set({
       products: updated,
       sales: [...get().sales, sale],
@@ -68,3 +89,18 @@ export const useBmsStore = create(persist((set,get)=>({
     return { income, expenses, profit, best, worst }
   }
 }), { name: 'bms-storage' }))
+
+// Helper function to check stock levels and trigger notifications
+function checkStockLevels(products, threshold) {
+  // Use setTimeout to avoid calling store during render
+  setTimeout(() => {
+    const notificationStore = useNotificationStore.getState()
+    products.forEach(product => {
+      if (product.stock === 0) {
+        notificationStore.notifyOutOfStock(product.name)
+      } else if (product.stock <= threshold) {
+        notificationStore.notifyLowStock(product.name, product.stock, threshold)
+      }
+    })
+  }, 0)
+}

@@ -13,6 +13,7 @@ import Expenses from './pages/Expenses'
 import Reports from './pages/Reports'
 import NotFound from './pages/NotFound'
 import Settings from './pages/Settings'
+import NotificationContainer from './components/Notification'
 
 export default function App() {
   const role = useAuthStore(s => s.role)
@@ -43,6 +44,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={toggleSidebar} />
+      <NotificationContainer />
       <div className="flex">
         {role && (
           <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
