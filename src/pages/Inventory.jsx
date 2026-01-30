@@ -25,7 +25,9 @@ export default function Inventory(){
           <form onSubmit={addP} className="grid grid-cols-4 gap-2 mb-3">
             <input className="border rounded px-2 py-1 col-span-2" placeholder="Name" value={p.name} onChange={e=>setP({...p,name:e.target.value})} />
             <input className="border rounded px-2 py-1" placeholder="Price" type="number" step="0.01" value={p.price} onChange={e=>setP({...p,price:e.target.value})} />
-            <input className="border rounded px-2 py-1" placeholder="Stock" type="number" value={p.stock} onChange={e=>setP({...p,stock:e.target.value})} />
+            <input className="border rounded px-2 py-1" placeholder="Qty" type="number" value={p.stock} onChange={e=>setP({...p,stock:e.target.value})} />
+           <input className="border rounded px-2 py-1" type="date" value={i.expiresAt} onChange={e=>setI({...i,expiresAt:e.target.value})} />
+
             <button className="col-span-4 bg-orange-900 text-white rounded px-3 py-2">Add Product</button>
           </form>
           <ul className="divide-y text-sm">
@@ -54,6 +56,7 @@ export default function Inventory(){
           <div className="font-medium mb-3">Ingredients</div>
           <form onSubmit={addI} className="grid grid-cols-3 gap-2 mb-3">
             <input className="border rounded px-2 py-1" placeholder="Name" value={i.name} onChange={e=>setI({...i,name:e.target.value})} />
+            <input className="border rounded px-2 py-1" placeholder="Price" type="number" step="0.01" value={p.price} onChange={e=>setP({...p,price:e.target.value})} />
             <input className="border rounded px-2 py-1" placeholder="Qty" type="number" value={i.qty} onChange={e=>setI({...i,qty:e.target.value})} />
             <input className="border rounded px-2 py-1" type="date" value={i.expiresAt} onChange={e=>setI({...i,expiresAt:e.target.value})} />
             <button className="col-span-3 bg-orange-900 text-white rounded px-3 py-2">Add Ingredient</button>

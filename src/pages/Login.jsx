@@ -37,7 +37,7 @@ export default function Login() {
   };
 
   return (
-    <div className="h-[80vh] grid place-items-center">
+    <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
       <form
         onSubmit={handleSubmit}
         className="w-80 bg-orange-500 rounded-lg p-5 space-y-4"
