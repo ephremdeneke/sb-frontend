@@ -8,7 +8,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Inventory from './pages/Inventory'
 import Sales from './pages/Sales'
-import Customers from './pages/Customers'
+import History from './pages/History'
 import Expenses from './pages/Expenses'
 import Reports from './pages/Reports'
 import NotFound from './pages/NotFound'
@@ -63,7 +63,7 @@ export default function App() {
             </Route>
             <Route element={<ProtectedRoute roles={["Cashier"]} />}> 
               <Route path="/sales" element={<Sales />} />
-              <Route path="/customers" element={<Customers />} />
+              <Route path="/history" element={<History />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

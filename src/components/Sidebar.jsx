@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
   const cashierItems = [
     { href: "/sales", icon: ShoppingCart, label: t('nav.sales'), key: 'sales' },
-    { href: "/customers", icon: Users, label: t('nav.customers'), key: 'customers' },
+    { href: "/history", icon: FileText, label: t('nav.history'), key: 'history' },
   ];
 
   // Merge navigation based on role
