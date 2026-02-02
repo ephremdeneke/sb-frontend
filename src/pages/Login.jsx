@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/auth";
+import { useAuthStore } from "../store/auth"; // Import the auth store for login and logout functionality 
+import api from "../api/axios";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,30 +10,73 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    let role = null;
+    try {
+      const { data } = await api.post("/auth/login", {
+        username,
+        password,
+      });
 
-    // 🔐 demo credentials (replace with API later)
-    if (username === "manager" && password === "1234") {
-      role = "Manager";
-    } else if (username === "cashier" && password === "1234") {
-      role = "Cashier";
-    } else {
-      setError("Invalid username or password");
-      return;
-    }
+      // API can return: { token, role } or { token, user: { role } }
+      const token = data.token;
+      const role = data.role || data.user?.role;
 
-    // ✅ save role in Zustand
-    login(role);
+      if (token) {
+        localStorage.setItem("token", token);
+      }
 
-    // ✅ redirect by role
-    if (role === "Manager") {
-      navigate("/");
-    } else {
-      navigate("/sales");
+      login(role);
+
+      if (role === "Manager") {
+        navigate("/");
+      } else {
+        navigate("/sales");
+      }
+    } catch (err) {
+      // Backend connected but rejected credentials (401)
+      if (err.response?.status === 401) {
+        setError(err.response?.data?.message || "Invalid username or password");
+        setLoading(false);
+        return;
+      }
+
+      // Backend unreachable: network error, timeout, connection refused
+      const isConnectionError =
+        !err.response ||
+        err.code === "ERR_NETWORK" ||
+        err.code === "ECONNABORTED" ||
+        err.code === "ECONNREFUSED";
+
+      if (isConnectionError) {
+        // Fallback to demo credentials until backend is connected
+        let role = null;
+        if (username === "manager" && password === "1234") {
+          role = "Manager";
+        } else if (username === "cashier" && password === "1234") {
+          role = "Cashier";
+        } else {
+          setError("Backend offline. Use demo: manager/1234 or cashier/1234");
+          setLoading(false);
+          return;
+        }
+
+        login(role);
+        if (role === "Manager") {
+          navigate("/");
+        } else {
+          navigate("/sales");
+        }
+      } else {
+        setError(err.response?.data?.message || "Login failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,9 +110,10 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full bg-orange-900 text-white py-2 rounded-lg hover:bg-orange-800"
+          disabled={loading}
+          className="w-full bg-orange-900 text-white py-2 rounded-lg hover:bg-orange-800 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

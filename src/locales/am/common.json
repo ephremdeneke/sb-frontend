@@ -61,7 +61,9 @@
     "itemName": "የእቃ ስም",
     "quantity": "ብዛት",
     "price": "ዋጋ",
-    "category": "ምድብ"
+    "category": "ምድብ",
+    "product": "ምርቶች",
+    "ingredients": "ጥሬ ዕቃዎች"
   },
   "sales": {
     "title": "ሽያጭ",

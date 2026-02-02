@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
+import api from "../api/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import {
   TrendingUp,
@@ -24,26 +25,63 @@ import {
   Cell,
 } from "recharts";
 
+const DEFAULT_SALES_DATA = [
+  { name: "Mon", sales: 4200 },
+  { name: "Tue", sales: 3800 },
+  { name: "Wed", sales: 4600 },
+  { name: "Thu", sales: 5200 },
+  { name: "Fri", sales: 6100 },
+  { name: "Sat", sales: 7500 },
+  { name: "Sun", sales: 6800 },
+];
+
+const DEFAULT_PRODUCT_DATA = [
+  { name: "Croissants", value: 30 },
+  { name: "Cakes", value: 25 },
+  { name: "Bread", value: 20 },
+  { name: "Cookies", value: 15 },
+  { name: "Others", value: 10 },
+];
+
+const DEFAULT_STATS = [
+  { key: "totalRevenue", value: "$45,231", change: "+12.5%", trend: "up", icon: DollarSign, color: "text-green-600" },
+  { key: "totalSales", value: "2,345", change: "+8.2%", trend: "up", icon: ShoppingCart, color: "text-primary-600" },
+  { key: "productsSold", value: "5,678", change: "-3.1%", trend: "down", icon: Package, color: "text-amber-600" },
+  { key: "customers", value: "892", change: "+15.3%", trend: "up", icon: Users, color: "text-cyan-600" },
+];
+
+const ICON_MAP = { DollarSign, ShoppingCart, Package, Users };
+
 const Dashboard = () => {
   const { t } = useTranslation();
-  // Mock data for charts
-  const salesData = [
-    { name: "Mon", sales: 4200 },
-    { name: "Tue", sales: 3800 },
-    { name: "Wed", sales: 4600 },
-    { name: "Thu", sales: 5200 },
-    { name: "Fri", sales: 6100 },
-    { name: "Sat", sales: 7500 },
-    { name: "Sun", sales: 6800 },
-  ];
+  const [salesData, setSalesData] = useState(DEFAULT_SALES_DATA);
+  const [productData, setProductData] = useState(DEFAULT_PRODUCT_DATA);
+  const [stats, setStats] = useState(DEFAULT_STATS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const productData = [
-    { name: "Croissants", value: 30 },
-    { name: "Cakes", value: 25 },
-    { name: "Bread", value: 20 },
-    { name: "Cookies", value: 15 },
-    { name: "Others", value: 10 },
-  ];
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const { data } = await api.get("/dashboard");
+        if (data.salesData?.length) setSalesData(data.salesData);
+        if (data.productData?.length) setProductData(data.productData);
+        if (data.stats?.length) {
+          setStats(
+            data.stats.map((s) => ({
+              ...s,
+              icon: ICON_MAP[s.icon] || DEFAULT_STATS.find((d) => d.key === s.key)?.icon || DollarSign,
+            }))
+          );
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
   const COLORS = [
     "#f97316", // primary-500 (orange)
@@ -53,40 +91,13 @@ const Dashboard = () => {
     "#fdba74", // primary-300 (light orange)
   ];
 
-  const stats = [
-    {
-      key: "totalRevenue",
-      value: "$45,231",
-      change: "+12.5%",
-      trend: "up",
-      icon: DollarSign,
-      color: "text-green-600",
-    },
-    {
-      key: "totalSales",
-      value: "2,345",
-      change: "+8.2%",
-      trend: "up",
-      icon: ShoppingCart,
-      color: "text-primary-600",
-    },
-    {
-      key: "productsSold",
-      value: "5,678",
-      change: "-3.1%",
-      trend: "down",
-      icon: Package,
-      color: "text-amber-600",
-    },
-    {
-      key: "customers",
-      value: "892",
-      change: "+15.3%",
-      trend: "up",
-      icon: Users,
-      color: "text-cyan-600",
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">{t("dashboard.loading") || "Loading dashboard..."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -100,6 +111,9 @@ const Dashboard = () => {
           <p className="text-gray-600">
             {t('dashboard.welcome')}
           </p>
+          {error && (
+            <p className="mt-2 text-sm text-red-600">{error}</p>
+          )}
         </div>
 
         {/* Stats Grid */}

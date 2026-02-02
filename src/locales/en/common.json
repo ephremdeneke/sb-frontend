@@ -56,7 +56,9 @@
     "itemName": "Item Name",
     "quantity": "Quantity",
     "price": "Price",
-    "category": "Category"
+    "category": "Category",
+    "product": "Products",
+    "ingredients": "Ingredients"
   },
   "sales": {
     "title": "Sales",

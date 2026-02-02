@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useBmsStore } from '../store/bms'
+import api from '../api/axios'
 
 export default function Sales(){
   const { products, recordSale } = useBmsStore(s=>({ products: s.products, recordSale: s.recordSale }))
   const [cart, setCart] = useState([])
   const [customer, setCustomer] = useState({ name:'', phone:'', notes:'' })
+  const [checkingOut, setCheckingOut] = useState(false)
+  const [error, setError] = useState(null)
+
   function addToCart(p){
     const exists = cart.find(c=>c.id===p.id)
     if(exists){ setCart(cart.map(c=> c.id===p.id? { ...c, qty: Math.min(c.qty+1, p.stock) }: c)) }
@@ -13,22 +17,52 @@ export default function Sales(){
   function setQty(id, qty){ setCart(cart.map(c=> c.id===id? { ...c, qty: Math.max(1, Number(qty)||1) }: c)) }
   function remove(id){ setCart(cart.filter(c=>c.id!==id)) }
   const total = cart.reduce((a,b)=> a + b.price*b.qty, 0)
-  function checkout(){
+
+  async function checkout(){
     if(cart.length===0) return
-    const sale = recordSale({ items: cart, customer })
-    const win = window.open('', 'receipt')
-    if(win){
-      win.document.write(`<pre>${JSON.stringify({ receipt: sale }, null, 2)}</pre>`)
-      win.document.close()
-      win.focus()
-      win.print()
+    setCheckingOut(true)
+    setError(null)
+    const payload = { items: cart, customer }
+    try {
+      const { data } = await api.post('/sales', payload)
+      const sale = recordSale(payload)
+      const win = window.open('', 'receipt')
+      if(win){
+        win.document.write(`<pre>${JSON.stringify({ receipt: sale }, null, 2)}</pre>`)
+        win.document.close()
+        win.focus()
+        win.print()
+      }
+      setCart([])
+      setCustomer({ name:'', phone:'', notes:'' })
+    } catch (err) {
+      const isConnectionError = !err.response || err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED' || err.code === 'ECONNREFUSED'
+      if (isConnectionError) {
+        const sale = recordSale(payload)
+        const win = window.open('', 'receipt')
+        if(win){
+          win.document.write(`<pre>${JSON.stringify({ receipt: sale }, null, 2)}</pre>`)
+          win.document.close()
+          win.focus()
+          win.print()
+        }
+        setCart([])
+        setCustomer({ name:'', phone:'', notes:'' })
+      } else {
+        setError(err.response?.data?.message || 'Checkout failed')
+      }
+    } finally {
+      setCheckingOut(false)
     }
-    setCart([])
-    setCustomer({ name:'', phone:'', notes:'' })
   }
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-orange-500">Sales</h1>
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
       <div className="grid md:grid-cols-3 gap-4">
         <div className="md:col-span-2 bg-white border rounded p-4">
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
@@ -57,11 +91,11 @@ export default function Sales(){
           </ul>
           <div className="flex justify-between"><span className="font-medium">Total</span><span className="font-semibold">${total.toFixed(2)}</span></div>
           <div className="space-y-2">
-            <input className="w-full border rounded px-2 py-1" placeholder="Customer name" value={customer.name} onChange={e=>setCustomer({...customer,name:e.target.value})} />
-            <input className="w-full border rounded px-2 py-1" placeholder="Phone" value={customer.phone} onChange={e=>setCustomer({...customer,phone:e.target.value})} />
             <input className="w-full border rounded px-2 py-1" placeholder="Notes" value={customer.notes} onChange={e=>setCustomer({...customer,notes:e.target.value})} />
           </div>
-          <button onClick={checkout} className="w-full bg-gray-900 text-white rounded px-3 py-2">Checkout</button>
+          <button onClick={checkout} disabled={checkingOut} className="w-full bg-gray-900 text-white rounded px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            {checkingOut ? 'Processing...' : 'Checkout'}
+          </button>
         </div>
       </div>
     </div>

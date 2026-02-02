@@ -9,6 +9,7 @@ import {
   DollarSign,
   FileText,
   Settings,
+  LogIn,
   LogOut,
   Coffee,
   X,
@@ -18,6 +19,7 @@ import { useAuthStore } from "../store/auth";
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const role = useAuthStore((s) => s.role);
+  const logout = useAuthStore((s) => s.logout);
   const { t } = useTranslation();
 
   // Close sidebar when clicking outside on mobile
@@ -98,7 +100,6 @@ export default function Sidebar({ isOpen, onClose }) {
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           w-64 lg:w-72 lg:translate-x-0 lg:fixed lg:z-auto lg:top-14
-          ${role ? 'block' : 'hidden'}
         `}
       >
         {/* Mobile Close Button */}
@@ -172,14 +173,27 @@ export default function Sidebar({ isOpen, onClose }) {
               </p>
             </div>
           </div>
-          <button
-            className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 lg:px-3 py-2 rounded-lg flex items-center text-xs lg:text-sm"
-            type="button"
-          >
-            <LogOut className="h-4 w-4 flex-shrink-0" />
-            <span className="hidden lg:inline">{t('auth.signOut')}</span>
-            <span className="lg:hidden">{t('auth.exit')}</span>
-          </button>
+          {role ? (
+            <button
+              className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 lg:px-3 py-2 rounded-lg flex items-center text-xs lg:text-sm"
+              type="button"
+              onClick={() => { logout(); window.innerWidth < 1024 && onClose(); }}
+            >
+              <LogOut className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden lg:inline">{t('auth.logout')}</span>
+              <span className="lg:hidden">{t('auth.exit')}</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 lg:px-3 py-2 rounded-lg flex items-center text-xs lg:text-sm"
+              onClick={() => window.innerWidth < 1024 && onClose()}
+            >
+              <LogIn className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden lg:inline">{t('auth.login')}</span>
+              <span className="lg:hidden">{t('auth.login')}</span>
+            </Link>
+          )}
         </div>
       </aside>
     </>

@@ -25,30 +25,16 @@ export default function Navbar({ onMenuClick }) {
               <Menu className="h-5 w-5 bg-orange-500" />
             </button>
           )}
-          <div className=" font-xl font-bold text-sm lg:text-base text-orange-600 ">{t('app.title')}</div>
+          
+          <div className=" font-xl font-bold lg:text-base text-orange-600 ">{t('app.title')}</div>
         </div>
         
         <div className="flex items-center gap-2 lg:gap-3">
           <LanguageSwitcher />
-          {role ? (
-            <>
-              <span className="hidden sm:inline text-sm bg-orange-500">
-                {translatedRole}
-              </span>
-              <button 
-                onClick={logout} 
-                className="px-2 lg:px-3 py-1.5 rounded bg-orange-500 text-white text-xs lg:text-sm hover:bg-orange-600 transition-colors"
-              >
-                {t('auth.logout')}
-              </button>
-            </>
-          ) : (
-            <a 
-              href="/login" 
-              className="px-2 lg:px-3 py-1.5 rounded bg-orange-500 text-white text-xs lg:text-sm hover:bg-orange-600 transition-colors"
-            >
-              {t('auth.login')}
-            </a>
+          {role && (
+            <span className="hidden sm:inline text-sm bg-orange-500 text-white px-2 py-0.5 rounded-md ml-2">
+              {translatedRole}
+            </span>
           )}
         </div>
       </div>
