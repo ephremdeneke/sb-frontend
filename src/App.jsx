@@ -1,75 +1,112 @@
-import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './store/auth'
-import Navbar from './components/Navbar'
-import Sidebar from './components/Sidebar'
-import ProtectedRoute from './components/ProtectedRoute'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Inventory from './pages/Inventory'
-import Sales from './pages/Sales'
-import History from './pages/History'
-import Expenses from './pages/Expenses'
-import Reports from './pages/Reports'
-import NotFound from './pages/NotFound'
-import Settings from './pages/Settings'
-import NotificationContainer from './components/Notification'
+import { useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuthStore } from "./store/auth";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Inventory from "./pages/Inventory";
+import Sales from "./pages/Sales";
+import History from "./pages/History";
+import Expenses from "./pages/Expenses";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+import NotificationContainer from "./components/Notification";
+import api from "./api/axios";
 
 export default function App() {
-  const role = useAuthStore(s => s.role)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const role = useAuthStore((s) => s.role); // should be "manager" | "cashier"
+  const login = useAuthStore((s) => s.login);
+  const logout = useAuthStore((s) => s.logout);
 
-  // Close sidebar when screen size changes to desktop
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // ------------------ Persistent login ------------------
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(false)
+    async function restoreLogin() {
+      try {
+        const res = await api.post("/auth/refresh"); // cookie automatically sent
+        const accessToken = res.data.accessToken;
+        const roleFromToken = res.data.role?.toLowerCase() || res.data.user?.role?.toLowerCase();
+
+        if (!accessToken || !roleFromToken) {
+          throw new Error("Invalid refresh response");
+        }
+
+        // restore access token
+        localStorage.setItem("accessToken", accessToken);
+
+        // restore auth state
+        login(roleFromToken); // lowercase role
+      } catch (err) {
+        localStorage.removeItem("accessToken");
+        logout();
+      } finally {
+        setLoading(false);
       }
     }
 
-    window.addEventListener('resize', handleResize)
-    handleResize() // Check initial size
+    restoreLogin();
+  }, [login, logout]);
 
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  // ------------------ Responsive sidebar ------------------
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setSidebarOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
 
-  const closeSidebar = () => {
-    setSidebarOpen(false)
-  }
+  // ------------------ Show loader until auth restored ------------------
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onMenuClick={toggleSidebar} />
       <NotificationContainer />
       <div className="flex">
-        {role && (
-          <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
-        )}
-        <main className={`flex-1 transition-all duration-300 ${role ? 'lg:ml-72' : ''} p-3 lg:p-4 pt-16 lg:pt-4`}>
+        {role && <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />}
+        <main
+          className={`flex-1 transition-all duration-300 ${
+            role ? "lg:ml-72" : ""
+          } p-3 lg:p-4 pt-16 lg:pt-4`}
+        >
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route element={<ProtectedRoute roles={["Manager"]} />}> 
+            {/* Login */}
+            <Route path="/login" element={!role ? <Login /> : <Navigate to="/" />} />
+
+            {/* Dashboard accessible to both roles */}
+            <Route element={<ProtectedRoute roles={["manager", "cashier"]} />}>
               <Route path="/" element={<Dashboard />} />
             </Route>
-            <Route element={<ProtectedRoute roles={["Manager"]} />}> 
+
+            {/* Manager Routes */}
+            <Route element={<ProtectedRoute roles={["manager"]} />}>
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
-            <Route element={<ProtectedRoute roles={["Cashier"]} />}> 
+
+            {/* Cashier Routes */}
+            <Route element={<ProtectedRoute roles={["cashier"]} />}>
               <Route path="/sales" element={<Sales />} />
               <Route path="/history" element={<History />} />
             </Route>
+
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </div>
     </div>
-  )
+  );
 }
-

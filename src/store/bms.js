@@ -28,6 +28,8 @@ const seed = () => ({
 
 export const useBmsStore = create(persist((set,get)=>({
   ...seed(),
+  setProducts: (list)=> set({ products: list }),
+  setIngredients: (list)=> set({ ingredients: list }),
   addProduct: (p)=> {
     const newProduct = { ...p, id: crypto.randomUUID() }
     const updated = [...get().products, newProduct]
@@ -74,6 +76,7 @@ export const useBmsStore = create(persist((set,get)=>({
   },
 
   addExpense: (e)=> set({ expenses: [...get().expenses, { ...e, id: crypto.randomUUID(), at: Date.now() }], activities: [...get().activities, { type:'add_expense', at: Date.now(), payload:e }] }),
+  setExpenses: (list)=> set({ expenses: list }),
 
   updateSettings: (patch)=> set({ settings: { ...((get().settings)||{}), ...patch } }),
 

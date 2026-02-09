@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useBmsStore } from '../store/bms'
+import api from '../api/axios'
 
 function downloadCsv(filename, rows){
   const process = rows.map(r=> r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))
@@ -15,29 +16,88 @@ function downloadCsv(filename, rows){
 export default function Reports(){
   const sales = useBmsStore(s=>s.sales)
   const expenses = useBmsStore(s=>s.expenses)
-  const stats = useBmsStore(s=>s.stats())
+  const products = useBmsStore(s=>s.products)
+  const storeStats = useBmsStore(s=>s.stats())
+
+  const [reportData, setReportData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const { data } = await api.get('/reports')
+        setReportData(data)
+      } catch (err) {
+        const isConnectionError = !err.response || err.code === 'ERR_NETWORK' || err.code === 'ECONNABORTED' || err.code === 'ECONNREFUSED'
+        if (isConnectionError) setError('Backend offline — using local data')
+        else setError(err.response?.data?.message || 'Failed to load reports')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchReports()
+  }, [])
+
+  const stats = useMemo(() => {
+    if (reportData && (reportData.income != null || reportData.profit != null)) {
+      return {
+        income: reportData.income ?? 0,
+        expenses: reportData.expenses ?? 0,
+        profit: reportData.profit ?? (reportData.income ?? 0) - (reportData.expenses ?? 0),
+      }
+    }
+    return storeStats
+  }, [reportData, storeStats])
+
+  const salesForExport = reportData?.sales ?? sales
+  const expensesForExport = reportData?.expenses ?? expenses
+
   const salesRows = useMemo(()=>[
     ['Date','Customer','Items','Total'],
-    ...sales.map(s=>[
-      new Date(s.at).toLocaleString(),
-      s.customer?.name || '-',
-      s.items.map(i=>`${i.name} x${i.qty}`).join('; '),
-      s.total
-    ])
-  ], [sales])
+    ...salesForExport.map(s=>{
+      const itemsStr = (s.items || []).map(i=>{
+        const name = i.name ?? products.find(p=>p.id===i.id)?.name ?? i.id
+        return `${name} x${i.qty ?? 1}`
+      }).join('; ')
+      return [
+        new Date(s.at || s.createdAt).toLocaleString(),
+        s.customer?.name || '-',
+        itemsStr,
+        s.total ?? 0
+      ]
+    })
+  ], [salesForExport, products])
+
   const expenseRows = useMemo(()=>[
     ['Date','Category','Note','Amount'],
-    ...expenses.map(e=>[
-      new Date(e.at).toLocaleString(), e.category, e.note, e.amount
+    ...expensesForExport.map(e=>[
+      new Date(e.at || e.createdAt).toLocaleString(),
+      e.category,
+      e.note ?? '',
+      e.amount ?? 0
     ])
-  ], [expenses])
+  ], [expensesForExport])
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-gray-500">Loading reports...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Reports</h1>
+      {error && (
+        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          {error}
+        </p>
+      )}
       <div className="grid md:grid-cols-3 gap-3">
-        <div className="bg-white border rounded p-4"><div className="text-sm text-gray-500">Income</div><div className="text-2xl font-semibold">${stats.income.toFixed(2)}</div></div>
-        <div className="bg-white border rounded p-4"><div className="text-sm text-gray-500">Expenses</div><div className="text-2xl font-semibold">${stats.expenses.toFixed(2)}</div></div>
-        <div className="bg-white border rounded p-4"><div className="text-sm text-gray-500">Profit</div><div className="text-2xl font-semibold">${stats.profit.toFixed(2)}</div></div>
+        <div className="bg-white border rounded p-4"><div className="text-sm text-gray-500">Income</div><div className="text-2xl font-semibold">${(stats.income ?? 0).toFixed(2)}</div></div>
+        <div className="bg-white border rounded p-4"><div className="text-sm text-gray-500">Expenses</div><div className="text-2xl font-semibold">${(stats.expenses ?? 0).toFixed(2)}</div></div>
+        <div className="bg-white border rounded p-4"><div className="text-sm text-gray-500">Profit</div><div className="text-2xl font-semibold">${(stats.profit ?? 0).toFixed(2)}</div></div>
       </div>
       <div className="bg-white border rounded p-4 space-y-2">
         <div className="font-medium">Exports</div>
