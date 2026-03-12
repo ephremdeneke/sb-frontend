@@ -3,25 +3,21 @@ import { useAuthStore } from "../store/auth"; // adjust path if needed
 
 // Create axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://sb-backend-ptnp.onrender.com/api",
   timeout: 10000,
-  withCredentials: true, // send httpOnly cookies automatically
+  withCredentials: true, // ✅ send httpOnly cookies automatically
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach access token from localStorage to every request
-api.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// -----------------------------
+// REMOVE request interceptor that reads localStorage
+// -----------------------------
+// Previously attaching Authorization header via localStorage is no longer needed
+// api.interceptors.request.use(...) removed
 
-// Handle 401 → try refresh token (SAFE version)
+// -----------------------------
+// Optional: handle 401 by calling refresh endpoint
+// -----------------------------
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -29,7 +25,6 @@ api.interceptors.response.use(
 
     const { isAuthenticated, logout } = useAuthStore.getState();
 
-    // 🚨 STOP CONDITION (THIS WAS MISSING)
     if (!isAuthenticated) {
       return Promise.reject(error);
     }
@@ -39,23 +34,12 @@ api.interceptors.response.use(
 
       try {
         // Call refresh endpoint (cookie sent automatically)
-        const res = await api.post("/auth/refresh");
+        await api.post("/auth/refresh"); // accessToken updated in cookie automatically
 
-        const newAccessToken = res.data.accessToken;
-        const roleFromToken = res.data.role || res.data.user?.role;
-
-        if (!newAccessToken) {
-          throw new Error("No access token returned");
-        }
-
-        localStorage.setItem("accessToken", newAccessToken);
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        // Retry original request
         return api(originalRequest);
       } catch (refreshError) {
-        // 🔥 FINAL STOP: refresh failed → logout once → stop all retries
-        localStorage.removeItem("accessToken");
+        // refresh failed → logout user
         logout();
         return Promise.reject(refreshError);
       }

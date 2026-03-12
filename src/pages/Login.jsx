@@ -18,16 +18,19 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // -----------------------------
+      // POST login (cookies sent automatically)
+      // -----------------------------
       const { data } = await api.post("/auth/login", { email, password });
-      const accessToken = data.accessToken;
-      const roleFromToken = data.role || data.user?.role;
 
-      if (accessToken) localStorage.setItem("accessToken", accessToken);
-      if (roleFromToken) login(roleFromToken);
+      // Use role from backend response to update Zustand store
+      const roleFromToken = data.role;
+      if (roleFromToken) login(roleFromToken); // ✅ store role
 
-      // Navigate
+      // Navigate based on role
       if (roleFromToken === "Manager") navigate("/");
       else navigate("/sales");
+
     } catch (err) {
       setError(
         err.response?.data?.message ||
