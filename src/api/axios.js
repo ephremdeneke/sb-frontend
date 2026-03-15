@@ -3,7 +3,7 @@ import { useAuthStore } from "../store/auth"; // adjust path if needed
 
 // Create axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://sb-backend-ptnp.onrender.com/api",
   timeout: 10000,
   withCredentials: true, // send httpOnly cookies automatically
   headers: { "Content-Type": "application/json" },
