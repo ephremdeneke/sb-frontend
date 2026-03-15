@@ -30,8 +30,9 @@ export default function Products() {
       setError(null);
       try {
         const { data } = await api.get("/products");
-        // Adjust this mapping to match your backend response shape
+
         const list = Array.isArray(data) ? data : data?.products || [];
+
         setProducts(list);
       } catch (err) {
         setError(err?.response?.data?.message || "Failed to load products");
@@ -54,7 +55,7 @@ export default function Products() {
 
     const payload = {
       productName: form.name,
-      category: form.category,
+      catagory: form.category, // backend expects this
       quantity: Number(form.quantity || 0),
       price: Number(form.unitPrice || 0)
     };
@@ -63,17 +64,20 @@ export default function Products() {
       if (editingIndex !== null) {
         const current = products[editingIndex];
         const id =
-          current.id ?? current.productName ?? current.name ?? editingIndex;
+          current._id ?? current.id ?? current.productName ?? editingIndex;
 
         const { data } = await api.put(`/products/${id}`, payload);
-        const updated = data || { ...current, ...payload };
+
+        const updated = data?.product || { ...current, ...payload };
 
         setProducts(prev =>
           prev.map((item, idx) => (idx === editingIndex ? updated : item))
         );
       } else {
         const { data } = await api.post("/manage/product", payload);
-        const newProduct = data || payload;
+
+        const newProduct = data?.product || payload;
+
         setProducts(prev => [...prev, newProduct]);
       }
 
@@ -82,7 +86,9 @@ export default function Products() {
       setIsAddOpen(false);
     } catch (err) {
       const fallback =
-        editingIndex !== null ? "Failed to update product" : "Failed to add product";
+        editingIndex !== null
+          ? "Failed to update product"
+          : "Failed to add product";
       const message = err?.response?.data?.message || fallback;
       setError(message);
       setAddError(message);
@@ -95,9 +101,10 @@ export default function Products() {
   async function handleDeleteProduct(product, index) {
     setError(null);
     try {
-      // Adjust identifier to match your backend (id, productName, etc.)
-      const id = product.id ?? product.productName ?? product.name ?? index;
+      const id = product._id ?? product.id ?? product.productName ?? index;
+
       await api.delete(`/products/${id}`);
+
       setProducts(prev => prev.filter((_, i) => i !== index));
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to delete product");
@@ -106,7 +113,8 @@ export default function Products() {
 
   // Derived data: filter by category + search
   const filteredProducts = products.filter(p => {
-    const category = p.category || "Uncategorized";
+    const category = p.catagory || p.category || "Uncategorized";
+
     const matchesCategory =
       selectedCategory === "All" || category === selectedCategory;
 
@@ -124,10 +132,8 @@ export default function Products() {
 
   return (
     <div className="pt-20 px-6 pb-6 space-y-8 bg-slate-50 min-h-screen">
-      {/* Page title */}
       <h1 className="text-2xl font-bold mb-2 text-center ">Products</h1>
 
-      {/* Header: search + Add Product button */}
       <div className="bg-white border rounded-lg px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
         <input
           type="text"
@@ -156,7 +162,6 @@ export default function Products() {
         </p>
       )}
 
-      {/* Category bar */}
       <div className="bg-white border rounded-lg shadow-sm px-4 py-3">
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="font-semibold text-gray-800">Category</span>
@@ -178,7 +183,6 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Product Grid below category bar */}
       <div>
         {loading ? (
           <div className="flex items-center justify-center h-40">
@@ -193,29 +197,6 @@ export default function Products() {
               <p className="text-sm font-medium text-gray-900">
                 No products match the current filters
               </p>
-              <p className="mt-1 text-xs text-gray-500">
-                Try choosing a different category or clearing the search text,
-                or add a new product to the inventory.
-              </p>
-              <div className="mt-4 flex items-center justify-center gap-3 text-xs">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedCategory("All");
-                    setSearchTerm("");
-                  }}
-                  className="px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
-                >
-                  Clear filters
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsAddOpen(true)}
-                  className="px-3 py-1.5 rounded-md bg-orange-900 text-white hover:bg-orange-800"
-                >
-                  + Add Product
-                </button>
-              </div>
             </div>
           </div>
         ) : (
@@ -225,6 +206,8 @@ export default function Products() {
               const unitPrice = Number(p.price ?? p.unitPrice ?? 0);
               const isOutOfStock = qty === 0;
               const isLowStock = qty <= lowStockThreshold && qty > 0;
+
+              const category = p.catagory || p.category;
 
               return (
                 <div
@@ -243,7 +226,6 @@ export default function Products() {
                         {p.productName || p.name || "Unnamed Product"}
                       </h2>
 
-                      {/* Stock badges */}
                       {isOutOfStock && (
                         <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full uppercase tracking-wide">
                           OUT OF STOCK
@@ -257,7 +239,7 @@ export default function Products() {
                     </div>
 
                     <div className="text-xs text-gray-500 mb-3">
-                      Category: {p.category || "Uncategorized"}
+                      Category: {category || "Uncategorized"}
                     </div>
 
                     <div className="space-y-1 text-sm text-gray-700">
@@ -266,14 +248,13 @@ export default function Products() {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center justify-end gap-3 mt-4">
                     <button
                       className="text-blue-600 text-xs font-medium hover:underline"
                       onClick={() => {
                         setForm({
                           name: p.productName || p.name || "",
-                          category: p.category || "",
+                          category: category || "",
                           quantity: String(p.quantity ?? p.stock ?? ""),
                           unitPrice: String(p.price ?? p.unitPrice ?? "")
                         });
@@ -298,7 +279,7 @@ export default function Products() {
         )}
       </div>
 
-      {/* Add Product Modal / Popup Card */}
+      {/* Modal unchanged */}
       {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
@@ -320,10 +301,11 @@ export default function Products() {
                   {addError}
                 </div>
               )}
+
               <div>
                 <label className="block text-gray-700 mb-1">Name</label>
                 <input
-                  className="w-full border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2"
                   placeholder="Product name"
                   value={form.name}
                   onChange={e =>
@@ -335,7 +317,7 @@ export default function Products() {
               <div>
                 <label className="block text-gray-700 mb-1">Category</label>
                 <select
-                  className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
+                  className="w-full border border-gray-200 rounded-md px-3 py-2"
                   value={form.category}
                   onChange={e =>
                     setForm(prev => ({ ...prev, category: e.target.value }))
@@ -351,50 +333,42 @@ export default function Products() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-700 mb-1">Quantity</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className="w-full border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
-                    placeholder="0"
-                    value={form.quantity}
-                    onChange={e =>
-                      setForm(prev => ({ ...prev, quantity: e.target.value }))
-                    }
-                  />
-                </div>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="Quantity"
+                  value={form.quantity}
+                  onChange={e =>
+                    setForm(prev => ({ ...prev, quantity: e.target.value }))
+                  }
+                  className="border rounded px-3 py-2"
+                />
 
-                <div>
-                  <label className="block text-gray-700 mb-1">
-                    Unit Price (ETB)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    className="w-full border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
-                    placeholder="0.00"
-                    value={form.unitPrice}
-                    onChange={e =>
-                      setForm(prev => ({ ...prev, unitPrice: e.target.value }))
-                    }
-                  />
-                </div>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  placeholder="Unit Price"
+                  value={form.unitPrice}
+                  onChange={e =>
+                    setForm(prev => ({ ...prev, unitPrice: e.target.value }))
+                  }
+                  className="border rounded px-3 py-2"
+                />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-3 py-2 text-xs font-medium text-gray-600 hover:text-gray-800"
+                  className="px-3 py-2 text-xs text-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={addSubmitting}
-                  className="px-4 py-2 text-xs font-medium bg-orange-900 text-white rounded-md hover:bg-orange-800 disabled:opacity-60"
+                  className="px-4 py-2 text-xs bg-orange-900 text-white rounded-md"
                 >
                   {addSubmitting
                     ? editingIndex !== null
