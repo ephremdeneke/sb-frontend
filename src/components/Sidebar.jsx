@@ -41,7 +41,8 @@ export default function Sidebar({ isOpen, onClose }) {
   ];
 
   const managerItems = [
-    { href: "/inventory", icon: Package, label: t("nav.inventory") },
+    { href: "/products", icon: Package, label: t("nav.products", { defaultValue: "Products" }) },
+    { href: "/ingredients", icon: Coffee, label: t("nav.ingredients", { defaultValue: "Ingredients" }) },
     { href: "/expenses", icon: DollarSign, label: t("nav.expenses") },
     { href: "/reports", icon: FileText, label: t("nav.reports") },
     { href: "/settings", icon: Settings, label: t("nav.settings") },
