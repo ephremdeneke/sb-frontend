@@ -6,7 +6,8 @@ import Sidebar from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Inventory from "./pages/Inventory";
+import Ingredients from "./pages/Ingredients";
+import products from "./pages/products";
 import Sales from "./pages/Sales";
 import History from "./pages/History";
 import Expenses from "./pages/Expenses";
@@ -90,7 +91,8 @@ export default function App() {
 
             {/* Manager Routes */}
             <Route element={<ProtectedRoute roles={["manager"]} />}>
-              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/Ingredients" element={<Ingredients />} />
+              <Route path="/Products" element={<Products />} />
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
