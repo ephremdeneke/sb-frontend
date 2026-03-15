@@ -4,13 +4,13 @@ import { useAuthStore } from "../store/auth";
 import api from "../api/axios";
 
 export default function Login() {
-  const navigate = useNavigate();
-  const login = useAuthStore((s) => s.login);
+  const navigate = useNavigate();// useNavigate is a hook that allows us to navigate to different pages
+  const login = useAuthStore((s) => s.login); // useAuthStore is a hook that allows us to store the user's role in the browser's local storage
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");// useState is a hook that allows us to store the user's email in the state
+  const [password, setPassword] = useState("");// useState is a hook that allows us to store the user's password in the state
+  const [error, setError] = useState("");// useState is a hook that allows us to store the user's error in the state
+  const [loading, setLoading] = useState(false);// useState is a hook that allows us to store the user's loading state in the state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,6 +62,16 @@ export default function Login() {
           className="w-full px-3 py-2 rounded-lg outline-none"
           onChange={(e) => setPassword(e.target.value)}
         />
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password")}
+            className="text-xs text-white underline underline-offset-2 hover:opacity-90"
+          >
+            Forgot password?
+          </button>
+        </div>
 
         {error && <p className="text-sm text-red-200 text-center">{error}</p>}
 
