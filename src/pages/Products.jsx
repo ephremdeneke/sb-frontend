@@ -29,7 +29,7 @@ export default function Products() {
       setLoading(true);
       setError(null);
       try {
-        const { data } = await api.get("/products");
+        const { data } = await api.get("/manage/stock");
 
         const list = Array.isArray(data) ? data : data?.products || [];
 
@@ -134,14 +134,7 @@ export default function Products() {
     <div className="pt-20 px-6 pb-6 space-y-8 bg-slate-50 min-h-screen">
       <h1 className="text-2xl font-bold mb-2 text-center ">Products</h1>
 
-      <div className="bg-white border rounded-lg px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
-        <input
-          type="text"
-          placeholder="Search Product..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400"
-        />
+    
         <button
           type="button"
           onClick={() => {
@@ -154,7 +147,7 @@ export default function Products() {
         >
           + Add Product
         </button>
-      </div>
+     
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
