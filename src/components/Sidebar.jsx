@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuthStore } from "../store/auth";
+import { Button } from "./ui/button";
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
@@ -53,11 +54,36 @@ export default function Sidebar({ isOpen, onClose }) {
     { href: "/history", icon: FileText, label: t("nav.history") },
   ];
 
+  const stockItems = [
+    {
+      href: "/stock",
+      icon: LayoutDashboard,
+      label: t("nav.stock_dashboard", { defaultValue: "Stock Dashboard" }),
+    },
+    {
+      href: "/stock/ingredients",
+      icon: Package,
+      label: t("nav.stock_ingredients", { defaultValue: "Ingredient Inventory" }),
+    },
+    {
+      href: "/stock/movements",
+      icon: DollarSign,
+      label: t("nav.stock_movements", { defaultValue: "Stock In / Out" }),
+    },
+    {
+      href: "/stock/history",
+      icon: FileText,
+      label: t("nav.stock_history", { defaultValue: "Stock History" }),
+    },
+  ];
+
   const navItems =
     role === "manager"
-      ? [...baseItems, ...managerItems]
+      ? [...baseItems, ...managerItems, ...stockItems]
       : role === "cashier"
       ? [...baseItems, ...cashierItems]
+      : role === "stockman"
+      ? [...baseItems, ...stockItems]
       : baseItems;
 
   /* ---------------- Logout ---------------- */
@@ -79,7 +105,7 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
@@ -87,7 +113,7 @@ export default function Sidebar({ isOpen, onClose }) {
       <aside
         className={`
           fixed left-0 top-14 h-[calc(100vh-3.5rem)]
-          bg-white border-r border-gray-200
+          bg-white border-r border-slate-200
           flex flex-col z-50
           transform transition-transform duration-300
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
@@ -95,24 +121,24 @@ export default function Sidebar({ isOpen, onClose }) {
         `}
       >
         {/* Mobile close */}
-        <div className="lg:hidden flex justify-end p-4 border-b">
-          <button onClick={onClose}>
-            <X className="h-5 w-5" />
-          </button>
+        <div className="lg:hidden flex justify-end p-4 border-b border-slate-200">
+          <Button variant="ghost" size="sm" onClick={onClose} leftIcon={X}>
+            Close
+          </Button>
         </div>
 
         {/* Logo */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-slate-200">
           <Link to="/" className="flex items-center gap-3">
-            <div className="bg-primary-600 p-2 rounded-lg">
+            <div className="bg-primary-600 p-2 rounded-2xl shadow-sm">
               <Coffee className="h-5 w-5 text-white" />
             </div>
-            <h1 className="font-bold">{t("app.title")}</h1>
+            <h1 className="font-semibold text-slate-900">{t("app.title")}</h1>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 custom-scrollbar overflow-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.href;
             return (
@@ -120,13 +146,12 @@ export default function Sidebar({ isOpen, onClose }) {
                 key={item.href}
                 to={item.href}
                 onClick={() => window.innerWidth < 1024 && onClose()}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                className={`flex items-center gap-3 px-3 py-2 rounded-2xl text-sm font-semibold transition
                   ${
                     active
-                      ? "bg-primary-50 text-primary-700"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }
-                `}
+                      ? "bg-primary-50 text-primary-700 ring-1 ring-inset ring-primary-600/15"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
               >
                 <item.icon className="h-5 w-5" />
                 {item.label}
@@ -136,19 +161,20 @@ export default function Sidebar({ isOpen, onClose }) {
         </nav>
 
         {/* Auth */}
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-slate-200">
           {role ? (
-            <button
+            <Button
               onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100"
+              variant="outline"
+              className="w-full justify-start"
+              leftIcon={LogOut}
             >
-              <LogOut className="h-5 w-5" />
               {t("auth.logout")}
-            </button>
+            </Button>
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100"
+              className="flex items-center gap-3 px-3 py-2 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900"
             >
               <LogIn className="h-5 w-5" />
               {t("auth.login")}

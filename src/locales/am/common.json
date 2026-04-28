@@ -12,6 +12,7 @@
   "roles": {
     "manager": "ማኔጅር",
     "cashier": "ካሻየር",
+    "stockman": "ስቶክ ማን",
     "user": "ተጠቃሚ"
   },
   "nav": {
@@ -21,7 +22,11 @@
     "reports": "ሪፖርቶች",
     "settings": "ማስተካከያ",
     "sales": "ሽያጮች",
-    "history": "ታሪክ"
+    "history": "ታሪክ",
+    "stock_dashboard": "የእቃ ዳሽ ቦርድ",
+    "stock_ingredients": "የእቃ ክምችት ዝርዝር",
+    "stock_movements": "እቃ ውስጥ/ውጭ",
+    "stock_history": "የእቃ ታሪክ"
   },
   "ui": {
     "close": "ዝጋ",

@@ -1,5 +1,9 @@
-import { useEffect, useState } from 'react'
-import api from '../api/axios'
+import { useEffect, useMemo, useState } from "react";
+import api from "../api/axios";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { EmptyState } from "../components/ui/empty-state";
 
 export default function Sales() {
   const [products, setProducts] = useState([])
@@ -66,6 +70,8 @@ export default function Sales() {
   }
 
   const total = cart.reduce((a, b) => a + b.price * b.qty, 0)
+  const formatMoney = (v) => `ETB ${Number(v || 0).toLocaleString()}`
+  const cartCount = useMemo(() => cart.reduce((s, x) => s + (x.qty || 0), 0), [cart])
 
   // -------- Checkout --------
   async function checkout() {
@@ -130,12 +136,14 @@ export default function Sales() {
 
   // -------- UI --------
   return (
-    <div className="space-y-4">
-
-      <h1 className="text-xl font-semibold text-orange-500">Sales</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Sales</h1>
+        <p className="mt-1 text-sm text-slate-600">Create orders and checkout quickly</p>
+      </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 shadow-sm">
           {error}
         </p>
       )}
@@ -143,32 +151,40 @@ export default function Sales() {
       <div className="grid md:grid-cols-3 gap-4">
 
         {/* Products */}
-        <div className="md:col-span-2 bg-white border rounded p-4">
-
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
-
-            {products.map(p => (
-              <button
-                key={p._id}
-                disabled={p.stock === 0}
-                onClick={() => addToCart(p)}
-                className="border rounded p-3 text-left hover:bg-orange-50 disabled:opacity-50"
-              >
-                <div className="font-medium">{p.name}</div>
-                <div className="text-sm text-gray-500">
-                  ${p.price} • stock {p.stock}
-                </div>
-              </button>
-            ))}
-
-          </div>
-
-        </div>
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {products.length === 0 ? (
+              <EmptyState title="No products available" description="Add products to start selling." />
+            ) : (
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {products.map((p) => (
+                  <button
+                    key={p._id}
+                    disabled={p.stock === 0}
+                    onClick={() => addToCart(p)}
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md hover:bg-orange-50/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="font-semibold text-slate-900 truncate">{p.name}</div>
+                    <div className="mt-1 text-xs text-slate-500">
+                      {formatMoney(p.price)} • stock {p.stock}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Cart */}
-        <div className="bg-white border rounded p-4 space-y-3">
-
-          <div className="font-medium">Cart</div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Cart</CardTitle>
+            <div className="text-xs font-semibold text-slate-500">{cartCount} items</div>
+          </CardHeader>
+          <CardContent className="space-y-3">
 
           <ul className="divide-y text-sm">
 
@@ -176,41 +192,37 @@ export default function Sales() {
               <li key={c.id} className="py-2 flex items-center gap-2">
 
                 <div className="flex-1">
-                  <div className="font-medium">{c.name}</div>
-                  <div className="text-gray-500">${c.price}</div>
+                  <div className="font-semibold text-slate-900">{c.name}</div>
+                  <div className="text-slate-500">{formatMoney(c.price)}</div>
                 </div>
 
-                <input
+                <Input
                   type="number"
-                  className="border rounded px-2 py-1 w-20"
+                  className="w-20"
                   value={c.qty}
                   onChange={e => setQty(c.id, e.target.value)}
                 />
 
-                <button
-                  onClick={() => remove(c.id)}
-                  className="px-2 py-1 text-red-600"
-                >
+                <Button variant="ghost" size="sm" onClick={() => remove(c.id)} className="text-red-700 hover:bg-red-50">
                   Remove
-                </button>
+                </Button>
 
               </li>
             ))}
 
             {cart.length === 0 && (
-              <li className="py-2 text-gray-500">Empty</li>
+              <li className="py-6 text-slate-500 text-center">Empty</li>
             )}
 
           </ul>
 
           <div className="flex justify-between">
             <span className="font-medium">Total</span>
-            <span className="font-semibold">${total.toFixed(2)}</span>
+            <span className="font-semibold text-slate-900">{formatMoney(total)}</span>
           </div>
 
           <div className="space-y-2">
-            <input
-              className="w-full border rounded px-2 py-1"
+            <Input
               placeholder="Notes"
               value={customer.notes}
               onChange={e =>
@@ -222,15 +234,16 @@ export default function Sales() {
             />
           </div>
 
-          <button
+          <Button
             onClick={checkout}
             disabled={checkingOut}
-            className="w-full bg-gray-900 text-white rounded px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full"
           >
             {checkingOut ? 'Processing...' : 'Checkout'}
-          </button>
+          </Button>
 
-        </div>
+          </CardContent>
+        </Card>
 
       </div>
 

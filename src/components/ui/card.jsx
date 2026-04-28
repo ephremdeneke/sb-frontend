@@ -1,11 +1,16 @@
 import React from "react";
 
 export function Card({ className = "", ...props }) {
-  return <div className={`bg-white text-gray-900 rounded-lg border border-gray-200 shadow-sm ${className}`} {...props} />;
+  return (
+    <div
+      className={`bg-white text-slate-900 rounded-2xl border border-slate-200 shadow-sm ${className}`}
+      {...props}
+    />
+  );
 }
 
 export function CardHeader({ className = "", ...props }) {
-  return <div className={`p-4 border-b border-gray-200 ${className}`} {...props} />;
+  return <div className={`p-4 border-b border-slate-200 ${className}`} {...props} />;
 }
 
 export function CardTitle({ className = "", ...props }) {

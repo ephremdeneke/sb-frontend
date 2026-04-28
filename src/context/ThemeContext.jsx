@@ -5,28 +5,38 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(false);
 
-  // Check for saved theme preference or use system preference
+  // Initialize from saved preference or system preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
+    const savedTheme = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    const prefersDark =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const shouldUseDark = savedTheme === "dark" || (!savedTheme && prefersDark);
+    setIsDark(!!shouldUseDark);
+
+    if (shouldUseDark) {
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "coffee");
     }
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+    const next = !isDark;
+    setIsDark(next);
+
+    if (next) {
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove("dark");
+      document.documentElement.setAttribute("data-theme", "coffee");
+      localStorage.setItem("theme", "light");
     }
   };
 

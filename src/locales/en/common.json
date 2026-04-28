@@ -12,6 +12,7 @@
   "roles": {
     "manager": "Manager",
     "cashier": "Cashier",
+    "stockman": "Stock Man",
     "user": "User"
   },
   "nav": {
@@ -21,7 +22,11 @@
     "reports": "Reports",
     "settings": "Settings",
     "sales": "Sales",
-    "history": "History"
+    "history": "History",
+    "stock_dashboard": "Stock Dashboard",
+    "stock_ingredients": "Ingredient Inventory",
+    "stock_movements": "Stock In / Out",
+    "stock_history": "Stock History"
   },
   "ui": {
     "close": "Close",

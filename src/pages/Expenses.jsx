@@ -1,5 +1,11 @@
-import { useState, useEffect } from 'react'
-import api from '../api/axios'
+import { useState, useEffect, useMemo } from "react";
+import api from "../api/axios";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
+import { EmptyState } from "../components/ui/empty-state";
 
 export default function Expenses(){
 
@@ -129,14 +135,24 @@ setSubmitting(false)
 
 
 
-const total = expenses.reduce((a,b)=>a+b.amount,0)
+const total = useMemo(() => expenses.reduce((a,b)=>a+Number(b.amount||0),0), [expenses])
+const formatMoney = (v) => `ETB ${Number(v || 0).toLocaleString()}`
 
 if (loading) {
 
 return (
-<div className="flex items-center justify-center min-h-[200px]">
-<p className="text-gray-500">Loading expenses...</p>
-</div>
+  <div className="space-y-4">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <div className="text-2xl font-semibold tracking-tight text-slate-900">Expenses</div>
+        <div className="mt-1 text-sm text-slate-600">Track and manage your expenses</div>
+      </div>
+    </div>
+    <div className="grid gap-4">
+      <Skeleton className="h-28 w-full" />
+      <Skeleton className="h-72 w-full" />
+    </div>
+  </div>
 )
 
 }
@@ -145,85 +161,103 @@ return (
 
 return (
 
-<div className="space-y-4">
+<div className="space-y-6">
 
-<h1 className="text-xl font-semibold">Expenses</h1>
+  <div className="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Expenses</h1>
+      <p className="mt-1 text-sm text-slate-600">Track and manage your expenses</p>
+    </div>
+  </div>
 
 {error &&
-<p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+<p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 shadow-sm">
 {error}
 </p>
 }
 
 
-<form onSubmit={submit} className="bg-white border rounded p-4 grid md:grid-cols-4 gap-2">
+<Card>
+  <CardHeader>
+    <CardTitle>Add expense</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-slate-600">Category</div>
+        <select
+          value={e.category}
+          onChange={ev=>setE({...e, category:ev.target.value})}
+          className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 shadow-sm outline-none transition focus:ring-2 focus:ring-orange-200"
+        >
+          <option value="ingredient">Ingredient</option>
+          <option value="salary">Salary</option>
+          <option value="rent">Rent</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
 
-<select
-className="border rounded px-2 py-1"
-value={e.category}
-onChange={ev=>setE({...e, category:ev.target.value})}
->
+      <div className="space-y-1">
+        <div className="text-xs font-semibold text-slate-600">Amount</div>
+        <Input
+          placeholder="0.00"
+          type="number"
+          step="0.01"
+          value={e.amount ?? ""}
+          onChange={ev=>setE({...e, amount:ev.target.value})}
+        />
+      </div>
 
-<option value="ingredient">Ingredients</option>
-<option value="salary">Salaries</option>
-<option value="rent">Rent</option>
-<option value="other">Other</option>
+      <div className="space-y-1 md:col-span-2">
+        <div className="text-xs font-semibold text-slate-600">Note</div>
+        <Input
+          placeholder="Optional note"
+          value={e.note}
+          onChange={ev=>setE({...e, note:ev.target.value})}
+        />
+      </div>
 
-</select>
-
-
-<input
-className="border rounded px-2 py-1"
-placeholder="Amount"
-type="number"
-step="0.01"
-value={e.amount ?? ""}
-onChange={ev=>setE({...e, amount:ev.target.value})}
-/>
-
-
-<input
-className="border rounded px-2 py-1 md:col-span-2"
-placeholder="Note"
-value={e.note}
-onChange={ev=>setE({...e, note:ev.target.value})}
-/>
-
-
-<button
-type="submit"
-disabled={submitting}
-className="bg-orange-900 text-white rounded px-3 py-2 md:col-span-4 disabled:opacity-50 disabled:cursor-not-allowed"
->
-
-{submitting ? 'Adding...' : 'Add Expense'}
-
-</button>
-
-</form>
-
-
-<div className="bg-white border rounded">
-
-<div className="p-3 font-medium border-b flex justify-between">
-
-<span>History</span>
-
-<span>Total: ${total.toFixed(2)}</span>
-
-</div>
+      <div className="md:col-span-4 flex items-center justify-end">
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Adding..." : "Add Expense"}
+        </Button>
+      </div>
+    </form>
+  </CardContent>
+</Card>
 
 
-<table className="w-full text-sm">
+<Card>
+
+<CardHeader className="flex flex-row items-center justify-between">
+
+<CardTitle>History</CardTitle>
+
+<span className="text-sm font-semibold text-slate-700">Total: {formatMoney(total)}</span>
+
+</CardHeader>
+
+
+<CardContent className="p-0">
+  {expenses.length === 0 ? (
+    <div className="p-4">
+      <EmptyState
+        title="No expenses yet"
+        description="Add your first expense to see it here."
+      />
+    </div>
+  ) : (
+    <div className="max-h-[520px] overflow-auto">
+      <table className="w-full text-sm">
 
 <thead>
 
-<tr className="border-b bg-orange-50 text-left">
+<tr className="border-b border-slate-200 bg-slate-50 text-left sticky top-0 z-10">
 
 <th className="p-2">When</th>
 <th className="p-2">Category</th>
 <th className="p-2">Note</th>
-<th className="p-2">Amount</th>
+<th className="p-2 text-right">Amount</th>
 
 </tr>
 
@@ -233,40 +267,35 @@ className="bg-orange-900 text-white rounded px-3 py-2 md:col-span-4 disabled:opa
 
 {expenses.map((x, i)=> (
 
-<tr key={x._id || i} className="border-b">
+<tr key={x._id || i} className={`${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"} border-b border-slate-100 hover:bg-orange-50/40 transition`}>
 
 <td className="p-2">
 {new Date(x.createdAt).toLocaleString()}
 </td>
 
 <td className="p-2">
-{x.category}
+  <Badge tone="primary">{x.category}</Badge>
 </td>
 
 <td className="p-2">
 {x.note}
 </td>
 
-<td className="p-2">
-${Number(x.amount).toFixed(2)}
+<td className="p-2 text-right font-semibold text-slate-900">
+{formatMoney(x.amount)}
 </td>
 
 </tr>
 
 ))}
 
-{expenses.length===0 &&
-<tr>
-<td className="p-3 text-orange-500" colSpan="4">
-No expenses yet
-</td>
-</tr>
-}
-
 </tbody>
 </table>
+    </div>
+  )}
+</CardContent>
 
-</div>
+</Card>   {/* ✅ CLOSE THE CARD */}
 
 </div>
 

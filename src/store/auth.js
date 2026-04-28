@@ -1,11 +1,29 @@
 import { create } from "zustand";
 import api from "../api/axios";
 
+function normalizeRole(rawRole) {
+  if (!rawRole) return null;
+  const r = String(rawRole).trim().toLowerCase();
+
+  // Canonicalize expected roles for this frontend:
+  // - manager: "Admin" in the requirements
+  // - cashier: existing cashier role
+  // - stockman: "Stock Man" in the requirements
+  if (r === "admin" || r === "administrator") return "manager";
+  if (r === "manager") return "manager";
+  if (r === "cashier") return "cashier";
+  if (r === "stockman" || r === "stock_man" || r === "stock-man" || r === "stock man")
+    return "stockman";
+
+  return r;
+}
+
 export const useAuthStore = create((set) => ({
   role: null,
+  userLabel: null,
 
-  login: (role) => {
-    set({ role });
+  login: (role, userLabel) => {
+    set({ role: normalizeRole(role), userLabel: userLabel ?? null });
   },
 
   logout: async () => {
@@ -20,7 +38,7 @@ export const useAuthStore = create((set) => ({
     } finally {
       // clear frontend auth state
       localStorage.removeItem("accessToken");
-      set({ role: null });
+      set({ role: null, userLabel: null });
     }
   },
 }));

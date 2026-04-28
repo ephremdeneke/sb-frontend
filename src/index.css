@@ -37,20 +37,21 @@
 }
 
 @layer components {
+  /* Legacy helpers (prefer `src/components/ui/*` primitives) */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-2xl transition duration-200 shadow-sm hover:shadow-md;
   }
-  
+
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-2xl transition duration-200 shadow-sm hover:shadow-md;
   }
-  
+
   .card {
-    @apply bg-white rounded-lg shadow-md border border-gray-200 p-6;
+    @apply bg-white rounded-2xl shadow-sm border border-slate-200 p-6;
   }
-  
+
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full h-10 px-3 border border-slate-200 rounded-2xl bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300;
   }
   
   /* Responsive sidebar utilities */

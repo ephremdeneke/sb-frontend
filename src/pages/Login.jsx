@@ -25,11 +25,28 @@ export default function Login() {
 
       // Use role from backend response to update Zustand store
       const roleFromToken = data.role;
-      if (roleFromToken) login(roleFromToken); // ✅ store role
+      const label =
+        data.user?.name ||
+        data.user?.email ||
+        data.user?.username ||
+        roleFromToken;
+      if (roleFromToken) login(roleFromToken, label); // ✅ store role
 
       // Navigate based on role
-      if (roleFromToken === "Manager") navigate("/");
-      else navigate("/sales");
+      const normalized =
+        roleFromToken &&
+        String(roleFromToken)
+          .trim()
+          .toLowerCase()
+          .replace(/[_-]/g, " ")
+          .replace(/\s+/g, " ");
+      if (normalized === "manager" || normalized === "admin" || normalized === "administrator")
+        navigate("/");
+      else if (normalized === "cashier")
+        navigate("/sales");
+      else if (normalized === "stock man" || normalized === "stockman" || normalized.includes("stock"))
+        navigate("/stock");
+      else navigate("/");
 
     } catch (err) {
       setError(

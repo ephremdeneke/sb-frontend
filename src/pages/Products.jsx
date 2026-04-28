@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input, Select } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
+import { EmptyState } from "../components/ui/empty-state";
 
 const CATEGORIES = ["All", "Bread", "Cake", "Engera", "Kukis"];
 
@@ -131,11 +137,13 @@ export default function Products() {
   });
 
   return (
-    <div className="pt-20 px-6 pb-6 space-y-8 bg-slate-50 min-h-screen">
-      <h1 className="text-2xl font-bold mb-2 text-center ">Products</h1>
-
-    
-        <button
+    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Products</h1>
+          <p className="mt-1 text-sm text-slate-600">Manage stock, pricing, and categories</p>
+        </div>
+        <Button
           type="button"
           onClick={() => {
             setForm({ name: "", category: "", quantity: "", unitPrice: "" });
@@ -143,55 +151,61 @@ export default function Products() {
             setEditingIndex(null);
             setIsAddOpen(true);
           }}
-          className="whitespace-nowrap inline-flex items-center gap-2 bg-orange-900 text-white text-sm font-medium rounded-md px-4 py-2 shadow-sm hover:bg-orange-800"
         >
           + Add Product
-        </button>
+        </Button>
+      </div>
      
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 shadow-sm">
           {error}
         </p>
       )}
 
-      <div className="bg-white border rounded-lg shadow-sm px-4 py-3">
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="font-semibold text-gray-800">Category</span>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Filters</CardTitle>
+          <div className="w-full max-w-sm">
+            <Input
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-xs font-semibold text-slate-600">Category</div>
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-full border transition-colors ${
+                className={`px-3 py-1.5 rounded-full border text-sm font-semibold transition ${
                   selectedCategory === cat
-                    ? "bg-orange-900 text-white border-orange-900"
-                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    ? "bg-primary-50 text-primary-700 border-primary-200"
+                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 {cat}
               </button>
             ))}
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <div>
         {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="text-sm text-gray-500">Loading products...</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-40 w-full" />
+            ))}
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="flex items-center justify-center h-60">
-            <div className="bg-white border border-dashed border-gray-200 rounded-xl px-8 py-6 text-center max-w-md shadow-sm">
-              <div className="mx-auto mb-3 h-10 w-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-700 text-lg font-semibold">
-                P
-              </div>
-              <p className="text-sm font-medium text-gray-900">
-                No products match the current filters
-              </p>
-            </div>
-          </div>
+          <EmptyState
+            title="No products found"
+            description="Try changing your search or category filter."
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProducts.map((p, idx) => {
@@ -205,12 +219,12 @@ export default function Products() {
               return (
                 <div
                   key={idx}
-                  className={`border rounded-xl p-4 bg-white shadow-sm hover:shadow-lg transition-shadow flex flex-col justify-between ${
+                  className={`border rounded-2xl p-4 bg-white shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between ${
                     isOutOfStock
                       ? "border-red-300"
                       : isLowStock
                       ? "border-yellow-300"
-                      : "border-gray-200"
+                      : "border-slate-200"
                   }`}
                 >
                   <div>
@@ -220,14 +234,10 @@ export default function Products() {
                       </h2>
 
                       {isOutOfStock && (
-                        <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                          OUT OF STOCK
-                        </span>
+                        <Badge tone="danger">OUT OF STOCK</Badge>
                       )}
                       {isLowStock && !isOutOfStock && (
-                        <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                          LOW STOCK
-                        </span>
+                        <Badge tone="warning">LOW STOCK</Badge>
                       )}
                     </div>
 
@@ -243,7 +253,7 @@ export default function Products() {
 
                   <div className="flex items-center justify-end gap-3 mt-4">
                     <button
-                      className="text-blue-600 text-xs font-medium hover:underline"
+                      className="text-primary-700 text-xs font-semibold hover:underline"
                       onClick={() => {
                         setForm({
                           name: p.productName || p.name || "",
@@ -260,7 +270,7 @@ export default function Products() {
                     </button>
                     <button
                       onClick={() => handleDeleteProduct(p, idx)}
-                      className="text-red-600 text-xs font-medium hover:underline"
+                      className="text-red-700 text-xs font-semibold hover:underline"
                     >
                       Delete
                     </button>
@@ -275,7 +285,7 @@ export default function Products() {
       {/* Modal unchanged */}
       {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl ring-1 ring-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-gray-900">
                 {editingIndex !== null ? "Edit Product" : "Add Product"}
@@ -297,8 +307,7 @@ export default function Products() {
 
               <div>
                 <label className="block text-gray-700 mb-1">Name</label>
-                <input
-                  className="w-full border border-gray-200 rounded-md px-3 py-2"
+                <Input
                   placeholder="Product name"
                   value={form.name}
                   onChange={e =>
@@ -309,8 +318,7 @@ export default function Products() {
 
               <div>
                 <label className="block text-gray-700 mb-1">Category</label>
-                <select
-                  className="w-full border border-gray-200 rounded-md px-3 py-2"
+                <Select
                   value={form.category}
                   onChange={e =>
                     setForm(prev => ({ ...prev, category: e.target.value }))
@@ -322,11 +330,11 @@ export default function Products() {
                       {cat}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <input
+                <Input
                   type="number"
                   min={0}
                   placeholder="Quantity"
@@ -334,10 +342,9 @@ export default function Products() {
                   onChange={e =>
                     setForm(prev => ({ ...prev, quantity: e.target.value }))
                   }
-                  className="border rounded px-3 py-2"
                 />
 
-                <input
+                <Input
                   type="number"
                   min={0}
                   step="0.01"
@@ -346,22 +353,22 @@ export default function Products() {
                   onChange={e =>
                     setForm(prev => ({ ...prev, unitPrice: e.target.value }))
                   }
-                  className="border rounded px-3 py-2"
                 />
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-3 py-2 text-xs text-gray-600"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={addSubmitting}
-                  className="px-4 py-2 text-xs bg-orange-900 text-white rounded-md"
+                  size="sm"
                 >
                   {addSubmitting
                     ? editingIndex !== null
@@ -370,7 +377,7 @@ export default function Products() {
                     : editingIndex !== null
                     ? "Save Changes"
                     : "Add Product"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

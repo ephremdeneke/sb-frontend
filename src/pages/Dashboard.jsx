@@ -1,293 +1,236 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/auth";
 import api from "../api/axios";
 
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-
 import {
-  TrendingUp,
-  TrendingDown,
   DollarSign,
-  ShoppingCart,
-  Package
+  CalendarDays,
+  Layers,
+  Package,
+  ShoppingBag,
+  TrendingDown,
+  TrendingUp
 } from "lucide-react";
 
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
+  Area,
+  AreaChart,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
+  Cell,
+  Legend,
   Pie,
-  Cell
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
 } from "recharts";
 
-const ICON_MAP = { DollarSign, ShoppingCart, Package };
+const COLORS = ["#f97316", "#fb923c", "#fdba74", "#22c55e", "#6366f1"];
 
-const COLORS = ["#f97316", "#ea580c", "#fb923c", "#fed7aa", "#fdba74"];
+const formatMoney = (v) => `ETB ${Number(v || 0).toLocaleString()}`;
 
 const Dashboard = () => {
-
   const [period, setPeriod] = useState("weekly");
+  const [mode, setMode] = useState("product");
 
   const [salesData, setSalesData] = useState([]);
   const [productData, setProductData] = useState([]);
-  const [stats, setStats] = useState([]);
+  const [expenses, setExpenses] = useState(0);
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // =========================
-  // FETCH DASHBOARD
-  // =========================
+  const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
 
+  // ================= FETCH =================
   useEffect(() => {
-
-    const fetchDashboard = async () => {
-
+    const fetchData = async () => {
       try {
-
         setLoading(true);
 
-        const { data } = await api.get(`/manage/dashboard?period=${period}`);
+        const [dash, exp] = await Promise.all([
+          api.get(`/manage/dashboard?period=${period}`),
+          api.get("/manage/expenses")
+        ]);
 
-        setSalesData(data.salesData || []);
-        setProductData(data.productData || []);
+        setSalesData(dash.data.salesData || []);
+        setProductData(dash.data.productData || []);
 
-        if (Array.isArray(data.stats)) {
-          setStats(
-            data.stats.map((s) => ({
-              ...s,
-              icon: ICON_MAP[s.icon] || DollarSign
-            }))
-          );
+        const totalExp = (exp.data || []).reduce(
+          (sum, e) => sum + Number(e.amount || 0),
+          0
+        );
+
+        setExpenses(totalExp);
+      } catch (err) {
+        if (err.response?.status === 401) {
+          await logout();
+          navigate("/login");
         }
-
-      } catch (error) {
-        console.error("Dashboard error", error);
+        setError("Failed to load dashboard");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
-
     };
 
-    fetchDashboard();
-
+    fetchData();
   }, [period]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[400px]">
-        Loading Dashboard...
-      </div>
-    );
-  }
+  // ================= CALCULATIONS =================
+  const totals = useMemo(() => {
+    const revenue = salesData.reduce((s, d) => s + Number(d.sales || 0), 0);
+    const profit = revenue - expenses;
 
+    return {
+      revenue,
+      expenses,
+      profit,
+      orders: salesData.length,
+      products: productData.length
+    };
+  }, [salesData, productData, expenses]);
+
+  const bestSelling = useMemo(() => {
+    const sorted = [...productData].sort((a, b) => b.value - a.value);
+    const top = sorted.slice(0, 5);
+    const max = top[0]?.value || 1;
+    return { top, max };
+  }, [productData]);
+
+  // ================= UI =================
   return (
-    <div className="space-y-6 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
 
-      {/* PERIOD SELECTOR */}
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-gray-500 text-sm">
+            Overview of your business performance
+          </p>
+        </div>
 
-      <div className="flex gap-2">
-
-        <button
-          onClick={() => setPeriod("daily")}
-          className={`px-4 py-2 rounded ${
-            period === "daily" ? "bg-orange-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Daily
-        </button>
-
-        <button
-          onClick={() => setPeriod("weekly")}
-          className={`px-4 py-2 rounded ${
-            period === "weekly" ? "bg-orange-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Weekly
-        </button>
-
-        <button
-          onClick={() => setPeriod("monthly")}
-          className={`px-4 py-2 rounded ${
-            period === "monthly" ? "bg-orange-500 text-white" : "bg-gray-200"
-          }`}
-        >
-          Monthly
-        </button>
-
+        <div className="flex gap-2 bg-white p-1 rounded-xl shadow">
+          {["product", "expense"].map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-4 py-2 rounded-xl text-sm ${
+                mode === m ? "bg-orange-500 text-white" : "text-gray-600"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* STATS */}
+      {/* FILTER */}
+      <div className="flex gap-2">
+        {["daily", "weekly", "monthly"].map((t) => (
+          <button
+            key={t}
+            onClick={() => setPeriod(t)}
+            className={`px-4 py-2 rounded-xl text-sm ${
+              period === t
+                ? "bg-orange-500 text-white"
+                : "bg-white text-gray-600"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-
-        {stats.map((stat) => {
-
-          const TrendIcon = stat.trend === "up" ? TrendingUp : TrendingDown;
-
-          return (
-
-            <Card key={stat.key}>
-
-              <CardHeader className="flex justify-between">
-
-                <CardTitle className="text-sm text-gray-600">
-                  {stat.key}
-                </CardTitle>
-
-                <stat.icon className="h-5 w-5 text-gray-600" />
-
-              </CardHeader>
-
-              <CardContent>
-
-                <div className="text-2xl font-bold">
-                  {stat.value}
-                </div>
-
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-
-                  <TrendIcon className="h-4 w-4" />
-
-                  {stat.change}
-
-                </div>
-
-              </CardContent>
-
-            </Card>
-
-          );
-        })}
-
+      {/* KPI */}
+      <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <Card title="Revenue" value={formatMoney(totals.revenue)} icon={DollarSign} />
+        <Card title="Expenses" value={formatMoney(totals.expenses)} icon={TrendingDown} />
+        <Card title="Profit" value={formatMoney(totals.profit)} icon={TrendingUp} />
+        <Card title="Orders" value={totals.orders} icon={ShoppingBag} />
+        <Card title="Products" value={totals.products} icon={Package} />
       </div>
 
       {/* CHARTS */}
-
       <div className="grid lg:grid-cols-2 gap-6">
 
-        {/* SALES CHART */}
+        {/* SALES */}
+        <div className="bg-white p-5 rounded-2xl shadow">
+          <h2 className="font-semibold mb-4">Sales Trend</h2>
 
-        <Card>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={salesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="sales"
+                stroke="#f97316"
+                fill="#fdba74"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
 
-          <CardHeader>
-            <CardTitle>Sales Trend</CardTitle>
-          </CardHeader>
+        {/* PIE */}
+        <div className="bg-white p-5 rounded-2xl shadow">
+          <h2 className="font-semibold mb-4">Product Distribution</h2>
 
-          <CardContent>
-
-            <ResponsiveContainer width="100%" height={300}>
-
-              <LineChart data={salesData}>
-
-                <CartesianGrid strokeDasharray="3 3" />
-
-                <XAxis dataKey="name" />
-
-                <YAxis />
-
-                <Tooltip />
-
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                />
-
-              </LineChart>
-
-            </ResponsiveContainer>
-
-          </CardContent>
-
-        </Card>
-
-        {/* PRODUCT PIE */}
-
-        <Card>
-
-          <CardHeader>
-            <CardTitle>Product Distribution</CardTitle>
-          </CardHeader>
-
-          <CardContent>
-
-            <ResponsiveContainer width="100%" height={300}>
-
-              <PieChart>
-
-                <Pie
-                  data={productData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={100}
-                >
-
-                  {productData.map((entry, index) => (
-                    <Cell
-                      key={index}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-
-                </Pie>
-
-                <Tooltip />
-
-              </PieChart>
-
-            </ResponsiveContainer>
-
-          </CardContent>
-
-        </Card>
-
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie data={productData} dataKey="value" innerRadius={60}>
+                {productData.map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Pie>
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* BEST SELLING */}
+      <div className="bg-white p-5 rounded-2xl shadow">
+        <h2 className="font-semibold mb-4">Best Selling Products</h2>
 
-      <Card>
+        {bestSelling.top.map((p, i) => {
+          const percent = (p.value / bestSelling.max) * 100;
 
-        <CardHeader>
-          <CardTitle>Best Selling Products</CardTitle>
-        </CardHeader>
+          return (
+            <div key={i} className="mb-4">
+              <div className="flex justify-between text-sm">
+                <span>{p.name}</span>
+                <span>{p.value}</span>
+              </div>
 
-        <CardContent>
-
-          <ResponsiveContainer width="100%" height={250}>
-
-            <BarChart data={productData}>
-
-              <CartesianGrid strokeDasharray="3 3" />
-
-              <XAxis dataKey="name" />
-
-              <YAxis />
-
-              <Tooltip />
-
-              <Bar
-                dataKey="value"
-                fill="#f97316"
-                radius={[8, 8, 0, 0]}
-              />
-
-            </BarChart>
-
-          </ResponsiveContainer>
-
-        </CardContent>
-
-      </Card>
-
+              <div className="h-2 bg-gray-200 rounded mt-1">
+                <div
+                  className="h-2 bg-orange-500 rounded"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
+
+// ================= CARD COMPONENT =================
+const Card = ({ title, value, icon: Icon }) => (
+  <div className="bg-white p-4 rounded-2xl shadow flex justify-between items-center">
+    <div>
+      <p className="text-sm text-gray-500">{title}</p>
+      <h3 className="text-lg font-bold">{value}</h3>
+    </div>
+    <Icon className="text-gray-600" />
+  </div>
+);
 
 export default Dashboard;

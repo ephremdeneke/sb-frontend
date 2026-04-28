@@ -14,6 +14,10 @@ import History from "./pages/History";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import DashboardStock from "./pages/StockDashboard";
+import StockIngredients from "./pages/StockIngredients";
+import StockMovements from "./pages/StockMovements";
+import StockHistory from "./pages/StockHistory";
 import NotFound from "./pages/NotFound";
 import NotificationContainer from "./components/Notification";
 import api from "./api/axios";
@@ -32,7 +36,7 @@ export default function App() {
       try {
         const res = await api.post("/auth/refresh"); // cookie automatically sent
         const accessToken = res.data.accessToken;
-        const roleFromToken = res.data.role?.toLowerCase() || res.data.user?.role?.toLowerCase();
+        const roleFromToken = res.data.role ?? res.data.user?.role ?? null;
 
         if (!accessToken || !roleFromToken) {
           throw new Error("Invalid refresh response");
@@ -42,7 +46,12 @@ export default function App() {
         localStorage.setItem("accessToken", accessToken);
 
         // restore auth state
-        login(roleFromToken); // lowercase role
+        const label =
+          res.data.user?.name ||
+          res.data.user?.email ||
+          res.data.user?.username ||
+          roleFromToken;
+        login(roleFromToken, label); // normalize inside store
       } catch (err) {
         localStorage.removeItem("accessToken");
         logout();
@@ -68,10 +77,10 @@ export default function App() {
   const closeSidebar = () => setSidebarOpen(false);
 
   // ------------------ Show loader until auth restored ------------------
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading) return <p className="text-center mt-10 text-sm text-slate-500">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f9fafb] text-slate-900">
       <Navbar onMenuClick={toggleSidebar} />
       <NotificationContainer />
       <div className="flex">
@@ -79,9 +88,10 @@ export default function App() {
         <main
           className={`flex-1 transition-all duration-300 ${
             role ? "lg:ml-72" : ""
-          } p-3 lg:p-4 pt-16 lg:pt-4`}
+          } px-4 sm:px-6 lg:px-8 py-6 pt-16 lg:pt-6`}
         >
-          <Routes>
+          <div className="mx-auto w-full max-w-7xl">
+            <Routes>
             {/* Login */}
             <Route path="/login" element={!role ? <Login /> : <Navigate to="/" />} />
             <Route
@@ -90,7 +100,7 @@ export default function App() {
             />
 
             {/* Dashboard accessible to both roles */}
-            <Route element={<ProtectedRoute roles={["manager", "cashier"]} />}>
+            <Route element={<ProtectedRoute roles={["manager", "cashier", "stockman"]} />}>
               <Route path="/" element={<Dashboard />} />
             </Route>
 
@@ -110,9 +120,18 @@ export default function App() {
               <Route path="/history" element={<History />} />
             </Route>
 
+            {/* Stock Management Routes (Admin + Stock Man) */}
+            <Route element={<ProtectedRoute roles={["manager", "stockman"]} />}>
+              <Route path="/stock" element={<DashboardStock />} />
+              <Route path="/stock/ingredients" element={<StockIngredients />} />
+              <Route path="/stock/movements" element={<StockMovements />} />
+              <Route path="/stock/history" element={<StockHistory />} />
+            </Route>
+
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </div>
         </main>
       </div>
     </div>
